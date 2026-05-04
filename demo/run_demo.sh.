@@ -1,0 +1,14 @@
+#!/bin/bash
+# AXION-TS Frictionless Demo
+
+echo "--------------------------------------"
+echo "🛡️ AXION PRO: Running Causal Gate Demo"
+echo "--------------------------------------"
+
+# Run the gate engine on our demo data
+python3 gate.py broken.json gold.json
+
+echo ""
+echo "💡 What just happened?"
+echo "AXION traced the failure back to the root cause event."
+echo "In a real pipeline, your deployment would have been BLOCKED."
