@@ -1,0 +1,19 @@
+name: 'AXION Causal Gate'
+description: 'Enforce causal invariants and block deployments on AI drift'
+inputs:
+  current_trace:
+    description: 'Path to the current trace JSON'
+    required: true
+  gold_standard:
+    description: 'Path to the gold standard JSON'
+    required: true
+  target_id:
+    description: 'The Event ID to validate'
+    default: '95'
+runs:
+  using: 'composite'
+  steps:
+    - name: Run AXION Hardened Engine
+      run: python ${{ github.action_path }}/demo/gate.py ${{ inputs.current_trace }} ${{ inputs.gold_standard }} --target ${{ inputs.target_id }}
+      shell: bash
+      
