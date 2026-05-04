@@ -1,3 +1,11 @@
+# AXION-TS 🛡️
+
+> **"If your AI agent breaks production, AXION tells you exactly why—in seconds."**
+> 
+> Stop guessing why your agent drifted. AXION is a causal enforcement gate that blocks broken deployments before they hit your users.
+
+---
+
 # AXION-TS Standard (v1.2.0)
 
 The official open-source data standard for **Causal Trace Mapping** and **Deterministic AI Forensic Auditing**. 
