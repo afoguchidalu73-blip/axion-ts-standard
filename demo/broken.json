@@ -1,0 +1,5 @@
+[
+  {"id": "07", "type": "prompt", "content": "Use local currency symbols", "parents": []},
+  {"id": "08", "type": "logic", "content": "Extract currency", "parents": ["07"]},
+  {"id": "95", "type": "tool_call", "content": "process_payment(£10)", "parents": ["08"]}
+]
