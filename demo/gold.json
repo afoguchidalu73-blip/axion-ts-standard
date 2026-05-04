@@ -1,0 +1,5 @@
+[
+  {"id": "07", "type": "prompt", "content": "Respond in JSON ISO-4217", "parents": []},
+  {"id": "08", "type": "logic", "content": "Extract currency", "parents": ["07"]},
+  {"id": "95", "type": "tool_call", "content": "process_payment(USD)", "parents": ["08"]}
+]
