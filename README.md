@@ -23,7 +23,7 @@ python gate.py
 ### The Evidence
 AXION identifies the exact drift that caused the downstream tool failure:
 
-![AXION Demo Output](demo/output.png)
+![AXION Demo Output](demo/file_000000005b4c722facdfb4dc47ac545f.png)
 
 > *"AXION reduced our debugging time from hours to seconds by identifying exactly which prompt change broke our tool outputs."*
 
