@@ -1,0 +1,76 @@
+import json
+from pydantic import BaseModel, ValidationError
+
+# --- 1. THE STRICT GUARDRAIL (Pydantic ACI) ---
+# The agent MUST output data matching this exact schema.
+class AgentAction(BaseModel):
+    tool_name: str
+    target_file: str
+    content: str
+
+# --- 2. THE MOCK LLM (The "Worker") ---
+# In reality, this would be a call to Claude or GPT. 
+# We are simulating an LLM that makes a mistake on the first try.
+class MockLLM:
+    def __init__(self):
+        self.attempts = 0
+
+    def generate(self, prompt: str, error_feedback: str = None) -> str:
+        self.attempts += 1
+        print(f"🧠 LLM Thinking... (Attempt {self.attempts})")
+        
+        if error_feedback:
+            print(f"   -> Analyzing Feedback: {error_feedback}")
+            # The LLM "fixes" its mistake based on the feedback
+            return '{"tool_name": "write_file", "target_file": "data.txt", "content": "Corrected data."}'
+        
+        # On the first try, the LLM hallucinates a missing field to trigger an error
+        return '{"tool_name": "write_file", "content": "I forgot the target_file field!"}'
+
+# --- 3. THE SELF-HEALING LOOP (The "Supervisor") ---
+def execute_with_healing(llm, prompt: str, max_retries: int = 3):
+    print("\n🚀 Starting Self-Healing Execution Loop\n" + "-"*40)
+    
+    error_feedback = None
+    
+    for attempt in range(max_retries):
+        try:
+            # 1. Worker generates a response
+            raw_response = llm.generate(prompt, error_feedback)
+            print(f"📦 Raw Output: {raw_response}")
+            
+            # 2. Supervisor validates against the Pydantic schema
+            parsed_json = json.loads(raw_response)
+            validated_action = AgentAction(**parsed_json)
+            
+            # 3. If we reach here, it's safe. Break the loop.
+            print(f"\n✅ SUCCESS: Action mathematically verified.")
+            return validated_action
+            
+        except json.JSONDecodeError as e:
+            # Healing Step A: Fix bad JSON format
+            error_feedback = f"FATAL: Invalid JSON format. Error: {str(e)}"
+            print(f"❌ CRASH PREVENTED: {error_feedback}")
+            
+        except ValidationError as e:
+            # Healing Step B: Fix missing or wrong data types
+            error_feedback = f"FATAL: Schema mismatch. Missing or incorrect fields. Trace: {e.errors()}"
+            print(f"❌ CRASH PREVENTED: Schema Violation Detected.")
+            
+        except Exception as e:
+            # Healing Step C: Catch unexpected system errors
+            error_feedback = f"FATAL: Unexpected runtime error: {str(e)}"
+            print(f"❌ CRASH PREVENTED: {error_feedback}")
+
+    print("\n💀 SYSTEM HALTED: Max retries exceeded. Agent could not heal.")
+    return None
+
+# --- BOOTSTRAP ---
+if __name__ == "__main__":
+    brain = MockLLM()
+    task = "Write a file named data.txt with some content."
+    
+    final_action = execute_with_healing(brain, task)
+    
+    if final_action:
+        print(f"\nProceeding to safe execution with: {final_action.model_dump()}")
