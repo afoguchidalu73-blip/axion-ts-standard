@@ -1,0 +1,158 @@
+import time
+import os
+import json
+from datetime import datetime
+
+# -----------------------------
+# ENVIRONMENT SETUP
+# -----------------------------
+STATE_FILE = "axion_state.json"
+WORLD_DIR = "./axion_world/"
+
+os.makedirs(WORLD_DIR, exist_ok=True)
+
+
+# -----------------------------
+# AXION CONFLICT AUTONOMY CORE
+# -----------------------------
+class AxionConflictAgent:
+    def __init__(self):
+        self.state = self.load_state()
+
+    # -----------------------------
+    # PERSISTENCE
+    # -----------------------------
+    def load_state(self):
+        if os.path.exists(STATE_FILE):
+            with open(STATE_FILE, "r") as f:
+                return json.load(f)
+        return {
+            "energy": 80.0,
+            "integrity": 80.0,
+            "cycle": 0,
+            "status": "ALIVE"
+        }
+
+    def save_state(self):
+        with open(STATE_FILE, "w") as f:
+            json.dump(self.state, f)
+
+    # -----------------------------
+    # WORLD SENSING
+    # -----------------------------
+    def sense_world(self):
+        files = os.listdir(WORLD_DIR)
+        return len(files)
+
+    # -----------------------------
+    # ENTROPY (WORLD IS HOSTILE)
+    # -----------------------------
+    def apply_entropy(self):
+        self.state["energy"] -= 2.0
+        self.state["integrity"] -= 1.0
+
+        if self.state["energy"] <= 0 or self.state["integrity"] <= 0:
+            self.state["status"] = "DEAD"
+
+    # -----------------------------
+    # CONFLICT MODEL (CORE IDEA)
+    # -----------------------------
+    def compute_conflicts(self):
+        energy_need = 100 - self.state["energy"]
+        integrity_need = 100 - self.state["integrity"]
+
+        return energy_need, integrity_need
+
+    # -----------------------------
+    # DECISION ENGINE (UTILITY BASED)
+    # -----------------------------
+    def decide(self):
+        e_need, i_need = self.compute_conflicts()
+
+        # PRIORITY 1: survival (energy crisis)
+        if e_need > i_need and e_need > 40:
+            return "RECHARGE"
+
+        # PRIORITY 2: structural survival
+        if i_need > 30:
+            return "REPAIR"
+
+        return "STASIS"
+
+    # -----------------------------
+    # ACTION SPACE
+    # -----------------------------
+    def act(self, action):
+        if action == "RECHARGE":
+            self.state["energy"] += 25
+            self.state["integrity"] -= 5  # vulnerability cost
+
+        elif action == "REPAIR":
+            self.state["energy"] -= 10
+            self.state["integrity"] += 15
+
+        elif action == "STASIS":
+            self.state["energy"] += 1  # passive recovery
+
+    # -----------------------------
+    # ENVIRONMENT FEEDBACK LOOP
+    # -----------------------------
+    def environment_effects(self):
+        file_count = self.sense_world()
+
+        # environment pressure
+        if file_count < 3:
+            self.state["integrity"] -= 0.5
+
+        if file_count > 10:
+            self.state["energy"] += 0.5  # rich environment
+
+    # -----------------------------
+    # LOGGING
+    # -----------------------------
+    def log(self, action):
+        print(
+            f"[Cycle {self.state['cycle']}] "
+            f"{action} | "
+            f"E:{self.state['energy']:.1f} "
+            f"I:{self.state['integrity']:.1f}"
+        )
+
+    # -----------------------------
+    # MAIN LOOP (LIFE LOOP)
+    # -----------------------------
+    def run(self):
+        print("🚀 AXION Conflict Autonomy ONLINE")
+
+        while self.state["status"] == "ALIVE":
+            self.state["cycle"] += 1
+
+            # 1. world decay
+            self.apply_entropy()
+
+            # 2. environment interaction
+            self.environment_effects()
+
+            # 3. decision
+            action = self.decide()
+
+            # 4. act
+            self.act(action)
+
+            # 5. save state
+            self.save_state()
+
+            # 6. observe
+            self.log(action)
+
+            time.sleep(2)
+
+        print("💥 AXION TERMINATED (State Failure)")
+
+
+# -----------------------------
+# BOOT
+# -----------------------------
+if __name__ == "__main__":
+    agent = AxionConflictAgent()
+    agent.run()
